@@ -21,7 +21,7 @@ env:
 jobs:
   build-and-test:
     # 动态命名任务，方便在 PR 检查面板中区分架构
-    name: Build and Test image
+    name: Build and Test Image
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -54,7 +54,7 @@ jobs:
   push:
     needs: build-and-test
     if: needs.build-and-test.result == 'success'
-    name: Push image
+    name: Push Image to GitHub Container Registry
     runs-on: ubuntu-latest
     steps:
       - name: Login to GitHub Container Registry

@@ -15,14 +15,32 @@ permissions:
   packages: write
 
 env:
+  TEST_TAG: texlive:test
   LATEST_TAG: texlive:latest
 
 jobs:
   test:
-    name: Test image
-    runs-on: ubuntu-latest
+    # 动态命名任务，方便在 PR 检查面板中区分架构
+    name: Test (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+
+    strategy:
+      # 建议设为 false，防止一个架构失败导致另一个架构的测试被强制取消
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-26.04-arm
+
     steps:
       - uses: actions/checkout@v7
+
+      - name: Verify Architecture
+        run: |
+          echo "Current Architecture: $(uname -m)"
+          echo "Matrix Target: ${{ matrix.arch }}"
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
@@ -42,14 +60,15 @@ jobs:
           context: ./texlive
           file: ./texlive/Dockerfile
           load: true
-          tags: ghcr.io/${{ github.repository_owner }}/${{ env.LATEST_TAG }}
+          tags: ${{ env.TEST_TAG }}
 
       - name: Test
         run: |
-          docker run --rm ghcr.io/${{ github.repository_owner }}/${{ env.LATEST_TAG }} pdflatex --version
+          docker run --rm ${{ env.TEST_TAG }} pdflatex --version
 
   build:
-    if: github.steps.test.outcome == 'success'
+    needs: test
+    if: needs.test.result == 'success'
     name: Build and push image
     runs-on: ubuntu-latest
     steps:

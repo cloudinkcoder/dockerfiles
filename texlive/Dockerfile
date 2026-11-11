@@ -22,7 +22,7 @@ ARG TL_URL=http://mirror.ctan.org
 # Download and Install TeXLive
 RUN wget -q ${TL_URL}/systems/texlive/tlnet/install-tl-unx.tar.gz \
   && tar -xzf install-tl-unx.tar.gz && rm install-tl-unx.tar.gz \
-  && ./install-tl-*/install-tl --profile=texlive.profile --repository=${TL_URL}/systems/texlive/tlnet > install.log \
+  && ./install-tl-*/install-tl --profile=texlive.profile --repository=${TL_URL}/systems/texlive/tlnet \
   && rm -rf install-tl-* install.log
 
 # Add path to environment

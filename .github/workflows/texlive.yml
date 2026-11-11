@@ -3,13 +3,13 @@ name: TeXLive Image
 on:
   workflow_dispatch:
   schedule:
-    # 每月3号的0:37执行 (北京时间+8)
-    - cron: "37 0 3 * *"
-  push:
-    branches: [main]
-    paths:
-      - "texlive/Dockerfile"
-      - "texlive/texlive.profile"
+    # 每周三的0:37执行 (北京时间+8)
+    - cron: "37 0 * * 3"
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - "texlive/Dockerfile"
+  #     - "texlive/texlive.profile"
 
 permissions:
   packages: write

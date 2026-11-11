@@ -1,0 +1,24 @@
+name: Delete Package Versions
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 每周三的0:37执行 (北京时间+8)
+    - cron: "37 0 * * 3"
+
+permissions:
+  packages: write
+  contents: read
+
+jobs:
+  delete:
+    # 动态命名任务，方便在 PR 检查面板中区分架构
+    name: Delete Package Version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/delete-package-versions@v5
+        with:
+          package-name: "texlive"
+          package-type: "container"
+          min-versions-to-keep: 3
+          owner: "cloudinkcoder"

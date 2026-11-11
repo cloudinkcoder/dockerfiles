@@ -19,6 +19,7 @@ env:
 
 jobs:
   test:
+    name: Test image
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -47,6 +48,7 @@ jobs:
 
   build:
     if: github.steps.test.outcome == 'success'
+    name: Build and push image
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

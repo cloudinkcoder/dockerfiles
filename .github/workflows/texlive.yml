@@ -5,11 +5,11 @@ on:
   schedule:
     # 每周三的0:37执行 (北京时间+8)
     - cron: "37 0 * * 3"
-  # push:
-  #   branches: [main]
-  #   paths:
-  #     - "texlive/Dockerfile"
-  #     - "texlive/texlive.profile"
+  push:
+    branches: [main]
+    paths:
+      - "texlive/Dockerfile"
+      - "texlive/texlive.profile"
 
 permissions:
   packages: write
@@ -20,11 +20,11 @@ env:
 
 jobs:
   build-and-test:
-    # 动态命名任务，方便在 PR 检查面板中区分架构
     name: Build and Test Image
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - name: Checkout
+        uses: actions/checkout@v7
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4

@@ -2,23 +2,28 @@ name: Delete Package Versions
 
 on:
   workflow_dispatch:
+    inputs:
+      keep:
+        description: "保留最近多少个versions (default 3)"
+        required: false
+        default: "3"
   schedule:
-    # 每周三的0:37执行 (北京时间+8)
-    - cron: "37 0 * * 3"
+    # 每月2号的0:13执行 (北京时间+8)
+    - cron: "13 0 2 * *"
 
 permissions:
   packages: write
-  contents: read
 
 jobs:
   delete:
-    # 动态命名任务，方便在 PR 检查面板中区分架构
     name: Delete Package Version
     runs-on: ubuntu-latest
+    env:
+      KEEP: ${{ github.event.inputs.keep || '3' }}
     steps:
       - uses: actions/delete-package-versions@v5
         with:
           package-name: "texlive"
           package-type: "container"
-          min-versions-to-keep: 3
+          min-versions-to-keep: ${{ env.KEEP }}
           owner: "cloudinkcoder"

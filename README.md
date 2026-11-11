@@ -4,4 +4,5 @@ Various Dockerfiles
 
 ## TeXLive
 
-- Support Languages: Chinese, English
+- Platform: amd64
+- Languages: Chinese, English

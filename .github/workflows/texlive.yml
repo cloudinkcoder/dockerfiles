@@ -19,35 +19,12 @@ env:
   LATEST_TAG: texlive:latest
 
 jobs:
-  test:
+  build-and-test:
     # 动态命名任务，方便在 PR 检查面板中区分架构
-    name: Test (${{ matrix.arch }})
-    runs-on: ${{ matrix.runner }}
-
-    strategy:
-      # 建议设为 false，防止一个架构失败导致另一个架构的测试被强制取消
-      fail-fast: false
-      matrix:
-        include:
-          - arch: amd64
-            runner: ubuntu-latest
-          - arch: arm64
-            runner: ubuntu-26.04-arm
-
+    name: Build and Test image
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-
-      - name: Verify Architecture
-        run: |
-          echo "Current Architecture: $(uname -m)"
-          echo "Matrix Target: ${{ matrix.arch }}"
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -59,21 +36,27 @@ jobs:
         with:
           context: ./texlive
           file: ./texlive/Dockerfile
-          load: true
+          outputs: type=docker,dest=${{ runner.temp }}/texlive.tar
           tags: ${{ env.TEST_TAG }}
 
       - name: Test
         run: |
+          docker load --input ${{ runner.temp }}/texlive.tar &&
           docker run --rm ${{ env.TEST_TAG }} pdflatex --version
 
-  build:
-    needs: test
-    if: needs.test.result == 'success'
-    name: Build and push image
+      - name: Upload image artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: texlive-image
+          path: ${{ runner.temp }}/texlive.tar
+          retention-days: 3
+
+  push:
+    needs: build-and-test
+    if: needs.build-and-test.result == 'success'
+    name: Push image
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
         with:
@@ -81,16 +64,22 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build and push
-        uses: docker/build-push-action@v7
+      - name: Download image artifact
+        uses: actions/download-artifact@v8
         with:
-          context: ./texlive
-          file: ./texlive/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ghcr.io/${{ github.repository_owner }}/${{ env.LATEST_TAG }}
+          name: texlive-image
+          path: ${{ runner.temp }}
+
+      - name: Load and push
+        run: |
+          docker load --input ${{ runner.temp }}/texlive.tar
+          docker tag ${{ env.TEST_TAG }} ghcr.io/${{ github.repository_owner }}/${{ env.LATEST_TAG }}
+          docker push ghcr.io/${{ github.repository_owner }}/${{ env.LATEST_TAG }}
+
+      # - name: Build and push
+      #   uses: docker/build-push-action@v7
+      #   with:
+      #     context: ./texlive
+      #     file: ./texlive/Dockerfile
+      #     push: true
+      #     tags: ghcr.io/${{ github.repository_owner }}/${{ env.LATEST_TAG }}

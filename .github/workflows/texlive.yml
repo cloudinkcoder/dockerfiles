@@ -75,11 +75,3 @@ jobs:
           docker load --input ${{ runner.temp }}/texlive.tar
           docker tag ${{ env.TEST_TAG }} ghcr.io/${{ github.repository_owner }}/${{ env.LATEST_TAG }}
           docker push ghcr.io/${{ github.repository_owner }}/${{ env.LATEST_TAG }}
-
-      # - name: Build and push
-      #   uses: docker/build-push-action@v7
-      #   with:
-      #     context: ./texlive
-      #     file: ./texlive/Dockerfile
-      #     push: true
-      #     tags: ghcr.io/${{ github.repository_owner }}/${{ env.LATEST_TAG }}
